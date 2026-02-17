@@ -1,0 +1,111 @@
+"use client";
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+export default function Navbar() {
+    const [scrolled, setScrolled] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 50);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const links = [
+        { label: "צימרים בצפון", href: "#regions" },
+        { label: "בקתות במדבר", href: "#regions" },
+        { label: "וילות יוקרה", href: "#recommended" },
+        { label: "הדקה ה-90", href: "#newsletter" },
+    ];
+
+    return (
+        <>
+            <nav
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${scrolled
+                        ? "bg-[#FBFAF9]/85 backdrop-blur-xl border-gray-200/50 py-2"
+                        : "bg-transparent border-transparent py-4"
+                    }`}
+            >
+                <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+                    {/* Logo */}
+                    <div className={`text-2xl font-bold transition-colors duration-300 ${scrolled ? 'text-primary' : 'text-white'}`}>
+                        <Link href="/">nofesh.click</Link>
+                    </div>
+
+                    {/* Desktop Links */}
+                    <div className="hidden md:flex items-center gap-8">
+                        {links.map((link) => (
+                            <a
+                                key={link.label}
+                                href={link.href}
+                                className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-700' : 'text-white/90 hover:text-white'
+                                    }`}
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                    </div>
+
+                    {/* Auth / CTA */}
+                    <div className="hidden md:flex items-center gap-4">
+                        <a
+                            href="#"
+                            className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-700' : 'text-white/90'
+                                }`}
+                        >
+                            התחבר
+                        </a>
+                        <a
+                            href="#"
+                            className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 shadow-sm"
+                        >
+                            רשום את הנכס
+                        </a>
+                    </div>
+
+                    {/* Mobile Hamburger */}
+                    <button
+                        className="md:hidden flex flex-col gap-1.5 p-2"
+                        onClick={() => setMenuOpen(!menuOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        <span className={`block w-6 h-0.5 transition-all duration-300 ${scrolled ? 'bg-gray-800' : 'bg-white'} ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+                        <span className={`block w-6 h-0.5 transition-all duration-300 ${scrolled ? 'bg-gray-800' : 'bg-white'} ${menuOpen ? 'opacity-0' : ''}`} />
+                        <span className={`block w-6 h-0.5 transition-all duration-300 ${scrolled ? 'bg-gray-800' : 'bg-white'} ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+                    </button>
+                </div>
+            </nav>
+
+            {/* Mobile Menu Overlay */}
+            <div className={`fixed inset-0 z-40 bg-white transition-transform duration-300 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="pt-24 px-8 space-y-6">
+                    {links.map((link) => (
+                        <a
+                            key={link.label}
+                            href={link.href}
+                            onClick={() => setMenuOpen(false)}
+                            className="block text-xl font-medium text-gray-800 hover:text-primary transition-colors py-2 border-b border-gray-100"
+                        >
+                            {link.label}
+                        </a>
+                    ))}
+                    <div className="pt-4 space-y-4">
+                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-primary">
+                            התחבר
+                        </a>
+                        <a
+                            href="#"
+                            className="block text-center bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors"
+                        >
+                            רשום את הנכס
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
