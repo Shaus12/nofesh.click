@@ -52,19 +52,51 @@ export default function Navbar() {
 
                     {/* Auth / CTA */}
                     <div className="hidden md:flex items-center gap-4">
-                        <Link
-                            href="/login"
-                            className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-700' : 'text-white/90'
-                                }`}
-                        >
-                            התחבר
-                        </Link>
-                        <Link
-                            href="/list-property"
-                            className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 shadow-sm"
-                        >
-                            רשום את הנכס
-                        </Link>
+                        {/* Mock Logged In State Toggle (for demo purposes) */}
+                        <div className="hidden">
+                            {/* Change this to true to see logged in state */}
+                        </div>
+
+                        {true ? ( // Simulated Logged In State
+                            <div className="relative group">
+                                <button className="flex items-center gap-2 border border-gray-300 rounded-full pl-2 pr-4 py-1 hover:shadow-md transition-shadow bg-white">
+                                    <div className="w-8 h-8 bg-gray-500 rounded-full text-white flex items-center justify-center text-xs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                            <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                    </svg>
+                                </button>
+                                {/* Dropdown Menu */}
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden hidden group-hover:block animate-in fade-in slide-in-from-top-2">
+                                    <div className="py-2">
+                                        <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium text-right">החופשות שלי</Link>
+                                        <Link href="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium text-right">מועדפים</Link>
+                                        <hr className="my-1 border-gray-100" />
+                                        <Link href="/list-property" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium text-right">רשום את הנכס</Link>
+                                        <Link href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium text-right">התנתק</Link>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/login"
+                                    className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-700' : 'text-white/90'
+                                        }`}
+                                >
+                                    התחבר
+                                </Link>
+                                <Link
+                                    href="/list-property"
+                                    className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 shadow-sm"
+                                >
+                                    רשום את הנכס
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Hamburger */}
