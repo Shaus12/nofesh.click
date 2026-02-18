@@ -1,95 +1,29 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
+import Link from 'next/link';
+import { useState } from 'react';
 
 const listings = [
-    {
-        id: 1,
-        title: "אחוזת היער",
-        location: "אמירים, גליל עליון",
-        price: "₪1,200",
-        rating: "4.98",
-        image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        id: 2,
-        title: "נוף לחרמון",
-        location: "נווה אטי״ב",
-        price: "₪1,500",
-        rating: "4.85",
-        image: "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        id: 3,
-        title: "Desert Soul",
-        location: "מצפה רמון",
-        price: "₪950",
-        rating: "4.92",
-        image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        id: 4,
-        title: "וילה בכרם",
-        location: "זכרון יעקב",
-        price: "₪2,200",
-        rating: "4.95",
-        image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        id: 5,
-        title: "הבקתה הכפרית",
-        location: "רמת הגולן",
-        price: "₪850",
-        rating: "4.76",
-        image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        id: 6,
-        title: "סוויטה רומנטית",
-        location: "ראש פינה",
-        price: "₪1,100",
-        rating: "4.88",
-        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=600&auto=format&fit=crop",
-    },
+    { id: 1, title: "אחוזת היער", location: "אמירים, גליל עליון", price: "₪1,200", rating: "4.98", image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?q=80&w=600&auto=format&fit=crop" },
+    { id: 2, title: "נוף לחרמון", location: "נווה אטי״ב", price: "₪1,500", rating: "4.85", image: "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=600&auto=format&fit=crop" },
+    { id: 3, title: "Desert Soul", location: "מצפה רמון", price: "₪950", rating: "4.92", image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=600&auto=format&fit=crop" },
+    { id: 4, title: "וילה בכרם", location: "זכרון יעקב", price: "₪2,200", rating: "4.95", image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=600&auto=format&fit=crop" },
+    { id: 5, title: "הבקתה הכפרית", location: "רמת הגולן", price: "₪850", rating: "4.76", image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=600&auto=format&fit=crop" },
+    { id: 6, title: "סוויטה רומנטית", location: "ראש פינה", price: "₪1,100", rating: "4.88", image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=600&auto=format&fit=crop" },
 ];
 
 const regions = [
-    {
-        name: "גליל עליון",
-        count: "128 צימרים",
-        image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        name: "רמת הגולן",
-        count: "95 צימרים",
-        image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        name: "מצפה רמון",
-        count: "67 צימרים",
-        image: "https://images.unsplash.com/photo-1682687982501-1e58ab814714?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-        name: "ים המלח",
-        count: "54 צימרים",
-        image: "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?q=80&w=600&auto=format&fit=crop",
-    },
+    { name: "גליל עליון", count: "128 צימרים", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600&auto=format&fit=crop" },
+    { name: "רמת הגולן", count: "95 צימרים", image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600&auto=format&fit=crop" },
+    { name: "מצפה רמון", count: "67 צימרים", image: "https://images.unsplash.com/photo-1682687982501-1e58ab814714?q=80&w=600&auto=format&fit=crop" },
+    { name: "ים המלח", count: "54 צימרים", image: "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?q=80&w=600&auto=format&fit=crop" },
 ];
 
 const testimonials = [
-    {
-        name: "מיכל לוי",
-        location: "תל אביב",
-        text: "חוויה מדהימה! הצימר היה מושלם, הנוף עוצר נשימה והשירות היה מעל ומעבר. בהחלט נחזור!",
-    },
-    {
-        name: "יוסי כהן",
-        location: "ירושלים",
-        text: "סוף שבוע רומנטי מושלם! הג׳קוזי, הקמין והאווירה - הכל היה פשוט מדהים. תודה!",
-    },
-    {
-        name: "שירה אברהם",
-        location: "חיפה",
-        text: "המקום הכי יפה שהייתי בו! הנוף למדבר בזריחה היה שווה כל שקל. ממליצה בחום!",
-    },
+    { name: "מיכל לוי", location: "תל אביב", text: "חוויה מדהימה! הצימר היה מושלם, הנוף עוצר נשימה והשירות היה מעל ומעבר. בהחלט נחזור!" },
+    { name: "יוסי כהן", location: "ירושלים", text: "סוף שבוע רומנטי מושלם! הג׳קוזי, הקמין והאווירה - הכל היה פשוט מדהים. תודה!" },
+    { name: "שירה אברהם", location: "חיפה", text: "המקום הכי יפה שהייתי בו! הנוף למדבר בזריחה היה שווה כל שקל. ממליצה בחום!" },
 ];
 
 const features = [
@@ -123,6 +57,23 @@ const features = [
 ];
 
 export default function Features() {
+    const [favorites, setFavorites] = useState<number[]>([]);
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+    const [newsletterSent, setNewsletterSent] = useState(false);
+
+    const toggleFavorite = (id: number) => {
+        setFavorites((prev) =>
+            prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+        );
+    };
+
+    const handleNewsletter = () => {
+        if (!newsletterEmail || !newsletterEmail.includes("@")) return;
+        setNewsletterSent(true);
+        setNewsletterEmail("");
+        setTimeout(() => setNewsletterSent(false), 4000);
+    };
+
     return (
         <div className="py-24 space-y-24">
 
@@ -133,24 +84,29 @@ export default function Features() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {listings.map((item) => (
                         <div key={item.id} className="group bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-border cursor-pointer">
-                            <div className="relative aspect-[4/3] overflow-hidden">
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                                {/* Heart icon */}
-                                <button className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:scale-110 transition-transform">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-700">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                                    </svg>
-                                </button>
-                                {/* Rating badge */}
-                                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-sm font-semibold">
-                                    <span className="text-yellow-500">★</span>
-                                    <span>{item.rating}</span>
+                            <Link href={`/room/${item.id}`} className="block">
+                                <div className="relative aspect-[4/3] overflow-hidden">
+                                    <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                    {/* Heart icon */}
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(item.id); }}
+                                        className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:scale-110 transition-transform"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill={favorites.includes(item.id) ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${favorites.includes(item.id) ? "text-red-500" : "text-gray-700"}`}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                        </svg>
+                                    </button>
+                                    {/* Rating badge */}
+                                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-sm font-semibold">
+                                        <span className="text-yellow-500">★</span>
+                                        <span>{item.rating}</span>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                             <div className="p-5">
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
@@ -167,9 +123,9 @@ export default function Features() {
                                         <span className="text-primary font-bold text-lg">{item.price}</span>
                                         <span className="text-muted-foreground text-sm mr-1">/ לילה</span>
                                     </div>
-                                    <button className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary hover:text-white transition-colors">
+                                    <Link href={`/room/${item.id}`} className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary hover:text-white transition-colors">
                                         הזמן עכשיו
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -183,20 +139,22 @@ export default function Features() {
                 <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">בחרו את היעד המושלם לחופשה הבאה שלכם</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {regions.map((region, idx) => (
-                        <div key={idx} className="group relative rounded-2xl overflow-hidden cursor-pointer aspect-[3/4]">
+                        <a
+                            key={idx}
+                            href="#recommended"
+                            className="group relative rounded-2xl overflow-hidden cursor-pointer aspect-[3/4] block"
+                        >
                             <img
                                 src={region.image}
                                 alt={region.name}
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
-                            {/* Gradient overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                            {/* Text */}
                             <div className="absolute bottom-0 inset-x-0 p-6 text-white">
                                 <h3 className="text-2xl font-bold mb-1">{region.name}</h3>
                                 <p className="text-white/80 text-sm">{region.count}</p>
                             </div>
-                        </div>
+                        </a>
                     ))}
                 </div>
             </section>
@@ -225,7 +183,6 @@ export default function Features() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {testimonials.map((t, idx) => (
                         <div key={idx} className="bg-card p-8 rounded-2xl border border-border hover:shadow-md transition-shadow">
-                            {/* Stars */}
                             <div className="flex gap-1 mb-4">
                                 {[1, 2, 3, 4, 5].map(s => (
                                     <span key={s} className="text-yellow-400 text-lg">★</span>
@@ -251,16 +208,32 @@ export default function Features() {
                 <div className="container mx-auto px-6 max-w-2xl text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">קבל הצעות מיוחדות ישירות למייל</h2>
                     <p className="text-white/80 mb-8">הירשם לניוזלטר שלנו וקבל עדכונים על חופשות חלומיות ומבצעים בלעדיים.</p>
-                    <div className="flex gap-3 max-w-lg mx-auto">
-                        <input
-                            type="email"
-                            placeholder="כתובת המייל שלך"
-                            className="flex-1 px-5 py-3.5 rounded-full bg-white/10 border border-white/30 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
-                        />
-                        <button className="bg-white text-primary px-8 py-3.5 rounded-full font-bold hover:bg-white/90 transition-colors shadow-lg">
-                            הרשמה
-                        </button>
-                    </div>
+
+                    {newsletterSent ? (
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-4 text-white font-bold flex items-center justify-center gap-2 max-w-lg mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            נרשמת בהצלחה! נשלח לך עדכונים בקרוב.
+                        </div>
+                    ) : (
+                        <div className="flex gap-3 max-w-lg mx-auto">
+                            <input
+                                type="email"
+                                placeholder="כתובת המייל שלך"
+                                value={newsletterEmail}
+                                onChange={(e) => setNewsletterEmail(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleNewsletter()}
+                                className="flex-1 px-5 py-3.5 rounded-full bg-white/10 border border-white/30 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
+                            />
+                            <button
+                                onClick={handleNewsletter}
+                                className="bg-white text-primary px-8 py-3.5 rounded-full font-bold hover:bg-white/90 transition-colors shadow-lg"
+                            >
+                                הרשמה
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 

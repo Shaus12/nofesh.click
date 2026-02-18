@@ -26,8 +26,8 @@ export default function Navbar() {
         <>
             <nav
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${scrolled
-                        ? "bg-[#FBFAF9]/85 backdrop-blur-xl border-gray-200/50 py-2"
-                        : "bg-transparent border-transparent py-4"
+                    ? "bg-[#FBFAF9]/85 backdrop-blur-xl border-gray-200/50 py-2"
+                    : "bg-transparent border-transparent py-4"
                     }`}
             >
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -52,19 +52,19 @@ export default function Navbar() {
 
                     {/* Auth / CTA */}
                     <div className="hidden md:flex items-center gap-4">
-                        <a
-                            href="#"
+                        <Link
+                            href="/login"
                             className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? 'text-gray-700' : 'text-white/90'
                                 }`}
                         >
                             התחבר
-                        </a>
-                        <a
-                            href="#"
+                        </Link>
+                        <Link
+                            href="/list-property"
                             className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 shadow-sm"
                         >
                             רשום את הנכס
-                        </a>
+                        </Link>
                     </div>
 
                     {/* Mobile Hamburger */}
@@ -94,15 +94,16 @@ export default function Navbar() {
                         </a>
                     ))}
                     <div className="pt-4 space-y-4">
-                        <a href="#" className="block text-lg font-medium text-gray-700 hover:text-primary">
+                        <Link href="/login" onClick={() => setMenuOpen(false)} className="block text-lg font-medium text-gray-700 hover:text-primary">
                             התחבר
-                        </a>
-                        <a
-                            href="#"
+                        </Link>
+                        <Link
+                            href="/list-property"
+                            onClick={() => setMenuOpen(false)}
                             className="block text-center bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors"
                         >
                             רשום את הנכס
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
