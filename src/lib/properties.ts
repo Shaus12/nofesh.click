@@ -46,6 +46,7 @@ export type HomePageProperty = {
  * Image: media where is_main, else media[0]. Price: min(units.price_weekend).
  */
 export async function getPublishedProperties(): Promise<HomePageProperty[]> {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("properties")
     .select("id, name, city, description_short, media(file_url, is_main), units(price_weekend)")
@@ -81,6 +82,7 @@ export async function getPublishedProperties(): Promise<HomePageProperty[]> {
 export async function getPropertyById(
   id: string
 ): Promise<PropertyWithRelations | null> {
+  if (!supabase) return null;
   const numId = parseInt(id, 10);
   if (Number.isNaN(numId)) return null;
 
@@ -111,6 +113,7 @@ export function getMainImageUrl(media: MediaRow[]): string {
  * Fetch published property ids for generateStaticParams and sitemap.
  */
 export async function getPublishedPropertyIds(): Promise<{ id: string }[]> {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("properties")
     .select("id")
@@ -136,6 +139,7 @@ export async function getSearchProperties(params: {
   location?: string;
   guests?: number;
 }): Promise<SearchPropertyResult[]> {
+  if (!supabase) return [];
   let query = supabase
     .from("properties")
     .select("id, name, city, media(file_url, is_main), units(price_weekend, max_adults, max_children)")
@@ -186,7 +190,7 @@ export async function getSearchProperties(params: {
 export async function getPropertiesByIds(
   ids: number[]
 ): Promise<HomePageProperty[]> {
-  if (ids.length === 0) return [];
+  if (!supabase || ids.length === 0) return [];
   const { data, error } = await supabase
     .from("properties")
     .select("id, name, city, media(file_url, is_main), units(price_weekend)")
