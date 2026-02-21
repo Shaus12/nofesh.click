@@ -31,7 +31,7 @@ export default function Hero() {
 
                 {/* Search Box Component */}
                 <div className="mt-12 w-full flex justify-center px-4">
-                    <SearchComponent />
+                    <SearchComponent redirectToSearchPage hideDates />
                 </div>
             </div>
         </div>

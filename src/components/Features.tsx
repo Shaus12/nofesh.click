@@ -1,17 +1,37 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import type { HomePageProperty } from "@/lib/properties";
+import { getStoredFavoriteIds, setStoredFavoriteIds } from "@/lib/wishlist";
 
-const listings = [
-    { id: 1, title: "אחוזת היער", location: "אמירים, גליל עליון", price: "₪1,200", rating: "4.98", image: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?q=80&w=600&auto=format&fit=crop" },
-    { id: 2, title: "נוף לחרמון", location: "נווה אטי״ב", price: "₪1,500", rating: "4.85", image: "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=600&auto=format&fit=crop" },
-    { id: 3, title: "Desert Soul", location: "מצפה רמון", price: "₪950", rating: "4.92", image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=600&auto=format&fit=crop" },
-    { id: 4, title: "וילה בכרם", location: "זכרון יעקב", price: "₪2,200", rating: "4.95", image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=600&auto=format&fit=crop" },
-    { id: 5, title: "הבקתה הכפרית", location: "רמת הגולן", price: "₪850", rating: "4.76", image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=600&auto=format&fit=crop" },
-    { id: 6, title: "סוויטה רומנטית", location: "ראש פינה", price: "₪1,100", rating: "4.88", image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=600&auto=format&fit=crop" },
-];
+type FeaturesProps = {
+  listings: HomePageProperty[];
+};
+
+/** Region tab id and display name */
+const REGION_TABS = [
+  { id: "all", label: "כל הצימרים" },
+  { id: "north", label: "צפון" },
+  { id: "center", label: "מרכז" },
+  { id: "south", label: "דרום" },
+] as const;
+
+/** Cities per region for client-side filtering (matches DB city field) */
+const CITIES_BY_REGION: Record<string, string[]> = {
+  north: ["רמות", "טבריה", "ראש פינה", "צפת", "קצרין", "קריית שמונה", "מטולה", "חצור הגלילית", "עפולה", "עכו", "נהריה", "מעלות", "כרמיאל", "גליל", "גולן", "רמת הגולן", "גליל עליון"],
+  center: ["תל אביב", "רמת גן", "גבעתיים", "חיפה", "הרצליה", "נתניה", "רעננה", "כפר סבא", "הוד השרון", "רמת השרון", "בני ברק", "פתח תקווה", "ראשון לציון", "חולון", "בת ים", "אשדוד", "אשקלון", "רחובות", "רמלה", "לוד", "מודיעין", "ירושלים"],
+  south: ["אילת", "מצפה רמון", "ערד", "דימונה", "באר שבע", "שדה בוקר", "ים המלח", "הנגב"],
+};
+
+function filterListingsByRegion(listings: HomePageProperty[], regionId: string): HomePageProperty[] {
+  if (regionId === "all") return listings;
+  const cities = CITIES_BY_REGION[regionId];
+  if (!cities?.length) return listings;
+  const citySet = new Set(cities.map((c) => c.trim().toLowerCase()));
+  return listings.filter((p) => citySet.has(p.city.trim().toLowerCase()));
+}
 
 const regions = [
     { name: "גליל עליון", count: "128 צימרים", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600&auto=format&fit=crop" },
@@ -56,15 +76,24 @@ const features = [
     },
 ];
 
-export default function Features() {
+export default function Features({ listings }: FeaturesProps) {
     const [favorites, setFavorites] = useState<number[]>([]);
     const [newsletterEmail, setNewsletterEmail] = useState("");
     const [newsletterSent, setNewsletterSent] = useState(false);
+    const [activeRegionTab, setActiveRegionTab] = useState<string>("all");
+
+    const filteredListings = filterListingsByRegion(listings, activeRegionTab);
+
+    useEffect(() => {
+        setFavorites(getStoredFavoriteIds());
+    }, []);
 
     const toggleFavorite = (id: number) => {
-        setFavorites((prev) =>
-            prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-        );
+        setFavorites((prev) => {
+            const next = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
+            setStoredFavoriteIds(next);
+            return next;
+        });
     };
 
     const handleNewsletter = () => {
@@ -79,58 +108,78 @@ export default function Features() {
 
             {/* ===== Recommended Listings ===== */}
             <section id="recommended" className="container mx-auto px-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">המומלצים שלנו</h2>
-                <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">הצימרים והוילות הפופולריים ביותר שנבחרו על ידי הצוות שלנו</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {listings.map((item) => (
-                        <div key={item.id} className="group bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-border cursor-pointer">
-                            <Link href={`/room/${item.id}`} className="block">
-                                <div className="relative aspect-[4/3] overflow-hidden">
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    {/* Heart icon */}
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(item.id); }}
-                                        className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:scale-110 transition-transform"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill={favorites.includes(item.id) ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${favorites.includes(item.id) ? "text-red-500" : "text-gray-700"}`}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground">המומלצים שלנו</h2>
+                    <div className="flex flex-wrap justify-center gap-2 rounded-full border border-border bg-muted/50 p-1">
+                        {REGION_TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveRegionTab(tab.id)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeRegionTab === tab.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-background"}`}
+                                aria-current={activeRegionTab === tab.id}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <p className="text-muted-foreground text-center mb-6 max-w-2xl mx-auto">הצימרים והוילות הפופולריים ביותר שנבחרו על ידי הצוות שלנו</p>
+                <div className="flex justify-center mb-12">
+                    <Link href="/search" className="text-primary font-medium hover:underline">
+                        צפה בהכל →
+                    </Link>
+                </div>
+                {filteredListings.length === 0 ? (
+                    <div className="bg-card rounded-2xl border border-border p-12 text-center">
+                        <p className="text-muted-foreground text-lg">
+                            {listings.length === 0 ? "אין נכסים להצגה כרגע." : "בקרוב יעלו צימרים באזור זה."}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredListings.slice(0, 3).map((item) => (
+                            <div key={item.id} className="group bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-border cursor-pointer">
+                                <Link href={`/room/${item.id}`} className="block">
+                                    <div className="relative aspect-[4/3] overflow-hidden">
+                                        <img
+                                            src={item.image || "https://images.unsplash.com/photo-1587061949409-02df41d5e562?q=80&w=600&auto=format&fit=crop"}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(item.id); }}
+                                            className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:scale-110 transition-transform"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill={favorites.includes(item.id) ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${favorites.includes(item.id) ? "text-red-500" : "text-gray-700"}`}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </Link>
+                                <div className="p-5">
+                                    <h3 className="font-bold text-lg text-foreground mb-2">{item.name}</h3>
+                                    <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                                         </svg>
-                                    </button>
-                                    {/* Rating badge */}
-                                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-sm font-semibold">
-                                        <span className="text-yellow-500">★</span>
-                                        <span>{item.rating}</span>
+                                        <span>{item.city}</span>
                                     </div>
-                                </div>
-                            </Link>
-                            <div className="p-5">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-bold text-lg text-foreground">{item.title}</h3>
-                                </div>
-                                <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                                    </svg>
-                                    <span>{item.location}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <span className="text-primary font-bold text-lg">{item.price}</span>
-                                        <span className="text-muted-foreground text-sm mr-1">/ לילה</span>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-primary font-bold text-lg">החל מ- ₪{item.priceFrom.toLocaleString()}</span>
+                                            <span className="text-muted-foreground text-sm mr-1"> ללילה</span>
+                                        </div>
+                                        <Link href={`/room/${item.id}`} className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary hover:text-white transition-colors">
+                                            הזמן עכשיו
+                                        </Link>
                                     </div>
-                                    <Link href={`/room/${item.id}`} className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium hover:bg-primary hover:text-white transition-colors">
-                                        הזמן עכשיו
-                                    </Link>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* ===== Discover by Region ===== */}
@@ -139,9 +188,9 @@ export default function Features() {
                 <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">בחרו את היעד המושלם לחופשה הבאה שלכם</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {regions.map((region, idx) => (
-                        <a
+                        <Link
                             key={idx}
-                            href="#recommended"
+                            href={`/search?location=${encodeURIComponent(region.name)}`}
                             className="group relative rounded-2xl overflow-hidden cursor-pointer aspect-[3/4] block"
                         >
                             <img
@@ -154,8 +203,13 @@ export default function Features() {
                                 <h3 className="text-2xl font-bold mb-1">{region.name}</h3>
                                 <p className="text-white/80 text-sm">{region.count}</p>
                             </div>
-                        </a>
+                        </Link>
                     ))}
+                </div>
+                <div className="text-center mt-8">
+                    <Link href="/search" className="text-primary font-medium hover:underline">
+                        צפה בהכל →
+                    </Link>
                 </div>
             </section>
 

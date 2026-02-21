@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DayPicker, DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { filterRegionsByQuery } from "./popularRegions";
 import "react-day-picker/dist/style.css";
 
 interface Guests {
@@ -20,6 +21,8 @@ interface MobileSearchOverlayProps {
     initialLocation: string;
     initialDateRange: DateRange | undefined;
     initialGuests: Guests;
+    /** When true, hide the dates step (e.g. hero search) */
+    hideDates?: boolean;
 }
 
 export default function MobileSearchOverlay({
@@ -28,17 +31,22 @@ export default function MobileSearchOverlay({
     onSearch,
     initialLocation,
     initialDateRange,
-    initialGuests
+    initialGuests,
+    hideDates = false,
 }: MobileSearchOverlayProps) {
     const [step, setStep] = useState<"location" | "dates" | "guests">("location");
     const [location, setLocation] = useState(initialLocation);
+    const [locationQuery, setLocationQuery] = useState("");
     const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
     const [guests, setGuests] = useState<Guests>(initialGuests);
+
+    const locationFiltered = filterRegionsByQuery(locationQuery);
 
     // Reset state when opening
     useEffect(() => {
         if (isOpen) {
             setLocation(initialLocation);
+            setLocationQuery("");
             setDateRange(initialDateRange);
             setGuests(initialGuests);
             setStep("location");
@@ -92,7 +100,9 @@ export default function MobileSearchOverlay({
                 </button>
                 <div className="flex gap-4 text-sm font-semibold">
                     <button onClick={() => setStep("location")} className={step === "location" ? "text-gray-900 border-b-2 border-gray-900 pb-1" : "text-gray-500"}>יעדים</button>
-                    <button onClick={() => setStep("dates")} className={step === "dates" ? "text-gray-900 border-b-2 border-gray-900 pb-1" : "text-gray-500"}>תאריכים</button>
+                    {!hideDates && (
+                        <button onClick={() => setStep("dates")} className={step === "dates" ? "text-gray-900 border-b-2 border-gray-900 pb-1" : "text-gray-500"}>תאריכים</button>
+                    )}
                     <button onClick={() => setStep("guests")} className={step === "guests" ? "text-gray-900 border-b-2 border-gray-900 pb-1" : "text-gray-500"}>אורחים</button>
                 </div>
                 <div className="w-8" /> {/* Spacer for centering */}
@@ -101,45 +111,54 @@ export default function MobileSearchOverlay({
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
-                {/* Location Section */}
+                {/* Location Section: Popover-style list (אזורים מבוקשים) */}
                 <div className={`bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 ${step === "location" ? "ring-2 ring-black" : ""}`} onClick={() => setStep("location")}>
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold text-gray-500">לאן?</span>
+                        <span className="text-sm font-bold text-gray-500">אזור / יישוב</span>
                         {step !== "location" && <span className="text-sm font-semibold">{location || "גמיש"}</span>}
                     </div>
                     {step === "location" && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2" dir="rtl" onClick={(e) => e.stopPropagation()}>
                             <input
                                 type="text"
-                                placeholder="חיפוש יעדים"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg p-3 text-lg font-semibold focus:outline-none focus:border-black"
+                                placeholder="חפש אזור..."
+                                value={locationQuery}
+                                onChange={(e) => setLocationQuery(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg p-3 text-lg font-semibold focus:outline-none focus:border-black text-right"
                                 autoFocus
                             />
-                            <div className="space-y-2 mt-4">
-                                <div className="text-xs font-bold text-gray-500 uppercase mb-2">יעדים פופולריים</div>
-                                {["תל אביב", "אילת", "ירושלים", "צפון", "דרום"].map((loc) => (
-                                    <button
-                                        key={loc}
-                                        onClick={(e) => { e.stopPropagation(); setLocation(loc); setStep("dates"); }}
-                                        className="flex items-center gap-3 w-full p-2 hover:bg-gray-50 rounded-lg transition-colors"
-                                    >
-                                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-600">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                                            </svg>
-                                        </div>
-                                        <span className="font-medium text-gray-700">{loc}</span>
-                                    </button>
-                                ))}
+                            <div className="space-y-1 mt-4">
+                                <div className="text-xs font-bold text-gray-500 uppercase mb-2">אזורים מבוקשים</div>
+                                {locationFiltered.length === 0 ? (
+                                    <p className="py-4 text-center text-gray-500 text-sm">לא נמצאו אזורים</p>
+                                ) : (
+                                    locationFiltered.map((region) => (
+                                        <button
+                                            key={region}
+                                            type="button"
+                                            onClick={() => {
+                                                setLocation(region);
+                                                setStep(hideDates ? "guests" : "dates");
+                                            }}
+                                            className={`flex items-center gap-3 w-full p-3 hover:bg-gray-50 rounded-xl transition-colors text-right ${location === region ? "bg-primary/10 text-primary" : ""}`}
+                                        >
+                                            <span className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-600">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                                </svg>
+                                            </span>
+                                            <span className="font-medium text-gray-800">{region}</span>
+                                        </button>
+                                    ))
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Dates Section */}
+                {/* Dates Section (hidden when hideDates) */}
+                {!hideDates && (
                 <div className={`bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 ${step === "dates" ? "ring-2 ring-black" : ""}`} onClick={() => setStep("dates")}>
                     <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-bold text-gray-500">מתי?</span>
@@ -185,6 +204,7 @@ export default function MobileSearchOverlay({
                         </div>
                     )}
                 </div>
+                )}
 
                 {/* Guests Section */}
                 <div className={`bg-white rounded-2xl p-5 shadow-sm transition-all duration-300 ${step === "guests" ? "ring-2 ring-black" : ""}`} onClick={() => setStep("guests")}>
@@ -194,6 +214,7 @@ export default function MobileSearchOverlay({
                     </div>
                     {step === "guests" && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-top-2 pt-2">
+                            <p className="text-sm text-gray-500 mb-2">הרכב אורחים</p>
                             {counters.map((counter) => (
                                 <div key={counter.key} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                                     <div>

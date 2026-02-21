@@ -1,22 +1,56 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import DateRangePicker from "./DateRangePicker";
 import GuestSelector from "./GuestSelector";
+import LocationCombobox from "./LocationCombobox";
 import MobileSearchOverlay from "./MobileSearchOverlay";
 
-export default function SearchComponent() {
-    const [location, setLocation] = useState("");
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [guests, setGuests] = useState({ adults: 0, children: 0, infants: 0, pets: 0 });
+export type SearchComponentProps = {
+    /** When true, submitting search navigates to /search with query params */
+    redirectToSearchPage?: boolean;
+    /** When true, hide the dates field (e.g. hero section) */
+    hideDates?: boolean;
+    initialLocation?: string;
+    initialDateRange?: DateRange | undefined;
+    initialGuests?: { adults: number; children: number; infants: number; pets: number };
+};
+
+export default function SearchComponent({
+    redirectToSearchPage = false,
+    hideDates = false,
+    initialLocation = "",
+    initialDateRange,
+    initialGuests = { adults: 0, children: 0, infants: 0, pets: 0 },
+}: SearchComponentProps = {}) {
+    const router = useRouter();
+    const [location, setLocation] = useState(initialLocation);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
+    const [guests, setGuests] = useState(initialGuests);
 
     const [activeTab, setActiveTab] = useState<"location" | "dates" | "guests" | null>(null);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Sync from URL/initial when on search page (use primitives to avoid infinite loop from new object refs)
+    useEffect(() => {
+        setLocation(initialLocation);
+        setDateRange(initialDateRange);
+        setGuests(initialGuests);
+    }, [
+        initialLocation,
+        initialDateRange?.from?.getTime(),
+        initialDateRange?.to?.getTime(),
+        initialGuests.adults,
+        initialGuests.children,
+        initialGuests.infants,
+        initialGuests.pets,
+    ]);
 
     // Close popovers when clicking outside
     useEffect(() => {
@@ -30,18 +64,38 @@ export default function SearchComponent() {
     }, []);
 
     const handleSearch = () => {
-        const section = document.getElementById("recommended");
-        if (section) {
-            section.scrollIntoView({ behavior: "smooth" });
-        }
         setActiveTab(null);
+        if (redirectToSearchPage) {
+            const params = new URLSearchParams();
+            if (location.trim()) params.set("location", location.trim());
+            if (dateRange?.from) params.set("checkIn", format(dateRange.from, "yyyy-MM-dd"));
+            if (dateRange?.to) params.set("checkOut", format(dateRange.to, "yyyy-MM-dd"));
+            const totalGuests = guests.adults + guests.children;
+            params.set("guests", String(totalGuests > 0 ? totalGuests : 1));
+            router.push(`/search?${params.toString()}`);
+            return;
+        }
+        const section = document.getElementById("recommended");
+        if (section) section.scrollIntoView({ behavior: "smooth" });
     };
 
-    const handleMobileSearchSubmit = (newLocation: string, newDateRange: DateRange | undefined, newGuests: any) => {
+    const handleMobileSearchSubmit = (newLocation: string, newDateRange: DateRange | undefined, newGuests: { adults: number; children: number; infants: number; pets: number }) => {
         setLocation(newLocation);
         setDateRange(newDateRange);
         setGuests(newGuests);
-        handleSearch();
+        setActiveTab(null);
+        if (redirectToSearchPage) {
+            const params = new URLSearchParams();
+            if (newLocation.trim()) params.set("location", newLocation.trim());
+            if (newDateRange?.from) params.set("checkIn", format(newDateRange.from, "yyyy-MM-dd"));
+            if (newDateRange?.to) params.set("checkOut", format(newDateRange.to, "yyyy-MM-dd"));
+            const totalGuests = newGuests.adults + newGuests.children;
+            params.set("guests", String(totalGuests > 0 ? totalGuests : 1));
+            router.push(`/search?${params.toString()}`);
+            return;
+        }
+        const section = document.getElementById("recommended");
+        if (section) section.scrollIntoView({ behavior: "smooth" });
     };
 
     const formatDateRange = () => {
@@ -74,11 +128,15 @@ export default function SearchComponent() {
                         </svg>
                     </div>
                     <div className="flex-1 text-right">
-                        <div className="text-sm font-bold text-gray-900">{location || "לאן תרצו לנסוע?"}</div>
+                        <div className="text-sm font-bold text-gray-900">{location || "אזור / יישוב"}</div>
                         <div className="text-xs text-gray-500 flex gap-1">
-                            <span>{dateRange?.from ? formatDateRange() : "תאריכים"}</span>
-                            <span>•</span>
-                            <span>{guests.adults + guests.children > 0 ? formatGuests() : "אורחים"}</span>
+                            {!hideDates && (
+                                <>
+                                    <span>{dateRange?.from ? formatDateRange() : "תאריכים"}</span>
+                                    <span>•</span>
+                                </>
+                            )}
+                            <span>{guests.adults + guests.children > 0 ? formatGuests() : "הרכב אורחים"}</span>
                         </div>
                     </div>
                     <div className="bg-white border border-gray-200 rounded-full px-3 py-1 flex items-center gap-2 text-xs font-bold shadow-sm">
@@ -91,49 +149,43 @@ export default function SearchComponent() {
                 {/* Desktop Search Bar (Existing Implementation) */}
                 <div className="hidden md:flex flex-col md:flex-row h-auto md:h-16 relative">
 
-                    {/* Location Input */}
-                    <div
-                        onClick={() => setActiveTab("location")}
-                        className={`flex-1 relative px-8 py-3 rounded-full cursor-pointer transition-colors group ${activeTab === "location" ? "bg-gray-100 shadow-sm" : "hover:bg-gray-50"
-                            }`}
-                    >
-                        <label className="block text-xs font-bold text-gray-800 mb-0.5 group-hover:text-primary transition-colors">מיקום</label>
-                        <input
-                            type="text"
+                    {/* Location: Popover/Command dropdown (אזורים מבוקשים) */}
+                    <div className="flex-1 relative">
+                        <LocationCombobox
                             value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            placeholder="לאן תרצו לנסוע?"
-                            className="w-full bg-transparent border-none p-0 text-gray-700 placeholder:text-gray-400 focus:outline-none text-sm font-medium truncate"
+                            onSelect={setLocation}
+                            open={activeTab === "location"}
+                            onOpenChange={(open) => setActiveTab(open ? "location" : null)}
+                            placeholder="אזור או יישוב"
+                            label="אזור / יישוב"
+                            variant="inline"
                         />
                     </div>
 
-                    {/* Divider */}
-                    <div className="hidden md:block w-px bg-gray-200 my-3" />
-
-                    {/* Dates Input */}
-                    <div
-                        onClick={() => setActiveTab("dates")}
-                        className={`flex-1 relative px-8 py-3 rounded-full cursor-pointer transition-colors group ${activeTab === "dates" ? "bg-gray-100 shadow-sm" : "hover:bg-gray-50"
-                            }`}
-                    >
-                        <label className="block text-xs font-bold text-gray-800 mb-0.5 group-hover:text-primary transition-colors">תאריכים</label>
-                        <div className={`text-sm font-medium truncate ${!dateRange?.from ? "text-gray-400" : "text-gray-700"}`}>
-                            {formatDateRange()}
-                        </div>
-                        {/* Date Picker Popover */}
-                        {activeTab === "dates" && (
-                            <div className="absolute top-full right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 mt-4 z-50 animate-in fade-in zoom-in-95 duration-200">
-                                <DateRangePicker
-                                    dateRange={dateRange}
-                                    setDateRange={setDateRange}
-                                    onClose={() => setActiveTab(null)}
-                                />
+                    {!hideDates && (
+                        <>
+                            <div className="hidden md:block w-px bg-gray-200 my-3" />
+                            <div
+                                onClick={() => setActiveTab("dates")}
+                                className={`flex-1 relative px-8 py-3 rounded-full cursor-pointer transition-colors group ${activeTab === "dates" ? "bg-gray-100 shadow-sm" : "hover:bg-gray-50"}`}
+                            >
+                                <label className="block text-xs font-bold text-gray-800 mb-0.5 group-hover:text-primary transition-colors">תאריכים (אופציונלי)</label>
+                                <div className={`text-sm font-medium truncate ${!dateRange?.from ? "text-gray-400" : "text-gray-700"}`}>
+                                    {formatDateRange()}
+                                </div>
+                                {activeTab === "dates" && (
+                                    <div className="absolute top-full right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 mt-4 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <DateRangePicker
+                                            dateRange={dateRange}
+                                            setDateRange={setDateRange}
+                                            onClose={() => setActiveTab(null)}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-
-                    {/* Divider */}
-                    <div className="hidden md:block w-px bg-gray-200 my-3" />
+                            <div className="hidden md:block w-px bg-gray-200 my-3" />
+                        </>
+                    )}
 
                     {/* Guests Input */}
                     <div
@@ -143,7 +195,7 @@ export default function SearchComponent() {
                     >
                         <div className="flex justify-between items-center h-full">
                             <div className="flex-1 overflow-hidden">
-                                <label className="block text-xs font-bold text-gray-800 mb-0.5 group-hover:text-primary transition-colors">אורחים</label>
+                                <label className="block text-xs font-bold text-gray-800 mb-0.5 group-hover:text-primary transition-colors">הרכב אורחים</label>
                                 <div className={`text-sm font-medium truncate ${guests.adults + guests.children === 0 ? "text-gray-400" : "text-gray-700"}`}>
                                     {formatGuests()}
                                 </div>
@@ -188,6 +240,7 @@ export default function SearchComponent() {
                 initialLocation={location}
                 initialDateRange={dateRange}
                 initialGuests={guests}
+                hideDates={hideDates}
             />
         </>
     );
