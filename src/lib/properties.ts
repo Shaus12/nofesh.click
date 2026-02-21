@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
-export type MediaRow = { file_url: string; is_main: boolean };
+export type MediaRow = { file_url: string; is_main: boolean; unit_id?: number | null };
 export type UnitRow = {
   id: number;
   name: string;
